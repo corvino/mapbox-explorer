@@ -1,7 +1,7 @@
 /* eslint-env node */
 module.exports = {
-  plugins: ["react"],
-  extends: ["eslint:recommended", "plugin:react/recommended"],
+  plugins: ["react", "tailwindcss"],
+  extends: ["eslint:recommended", "plugin:react/recommended", "plugin:tailwindcss/recommended"],
   parserOptions: {
     sourceType: "module"
   },

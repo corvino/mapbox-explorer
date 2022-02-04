@@ -33,10 +33,10 @@ export default () => {
 
   return (
     <div>
-      <div className="sidebar">
+      <div className="absolute top-0 left-0 z-10 py-1 px-3 m-3 font-normal text-white bg-[#23374be5] rounded-md">
         longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
       </div>
-      <div ref={mapContainer} className="map-container" />
+      <div ref={mapContainer} className="w-full h-screen" />
     </div>
   );
 }
