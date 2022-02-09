@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "React";
 import mapboxgl from "mapbox-gl";
 import mapboxConfig from "../config/mapbox";
+import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
 mapboxgl.accessToken = mapboxConfig.accessToken;
 
@@ -20,6 +22,17 @@ export default () => {
       center: [lng, lat],
       zoom: zoom
     });
+
+    window.mapboxgl = mapboxgl;
+    window.map = map;
+
+    const geocoder = new MapboxGeocoder({
+      accessToken: mapboxConfig.accessToken,
+      mapboxgl: mapboxgl,
+      types: "country,region,postcode,district,place,locality,neighborhood,address,poi"
+    });
+
+    map.current.addControl(geocoder);
   });
 
   useEffect(() => {
