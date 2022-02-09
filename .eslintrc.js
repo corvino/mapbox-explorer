@@ -13,7 +13,8 @@ module.exports = {
     quotes: ["error", "double", { avoidEscape: true }],
     "comma-dangle": ["error", "never"],
     "no-unused-vars": ["error"],
-    "react/display-name": "off"
+    "react/display-name": "off",
+    "react/prop-types": "disabled"
   },
   settings: {
     react: {
