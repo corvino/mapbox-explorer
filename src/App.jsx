@@ -5,6 +5,8 @@ import mapboxConfig from "../config/mapbox";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Tooltip from "./Tooltip";
+import { ChevronRightIcon } from "@heroicons/react/outline"
+
 
 mapboxgl.accessToken = mapboxConfig.accessToken;
 
@@ -15,6 +17,10 @@ export default () => {
   const [lng, setLng] = useState(-121.3971);
   const [lat, setLat] = useState(47.3896);
   const [zoom, setZoom] = useState(15);
+
+  const [showControls, setShowControls] = useState(false);
+  const [showBoundaries, setShowBoundaries] = useState(false);
+
   const [selectedFeatures, setSelectedFeatures] = useState([]);
 
   const tooltip = useRef(null);
@@ -66,7 +72,7 @@ export default () => {
     }).setLngLat([0, 0]).addTo(map.current);
 
     window.mapboxgl = mapboxgl;
-    window.map = map;
+    window.map = map.current;
 
     const geocoder = new MapboxGeocoder({
       accessToken: mapboxConfig.accessToken,
@@ -107,6 +113,12 @@ export default () => {
     });
   }, [selectedFeatures]);
 
+  function toggleBoundaries() {
+    const toggle = !showBoundaries;
+    map.current.showTileBoundaries = toggle;
+    setShowBoundaries(toggle);
+  }
+
   return (
     <div>
       <div className="absolute top-0 left-0 z-10">
@@ -114,13 +126,25 @@ export default () => {
           longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
         </div>
 
+        {showControls ?
+          <div className="py-1 px-3 m-3 font-normal text-white bg-[#23374be5] rounded-md">
+            <p className="float-right text-lg" onClick={() => setShowControls()}>x</p>
+            <p className="text-lg font-bold">Options:</p>
+            <ul>
+              <li onClick={toggleBoundaries}>{showBoundaries ? "x" : "o"} Show Tile Boundaries</li>
+            </ul>
+          </div>
+          :
+          <div className="w-4 h-4 -mt-3 float-left" onClick={() => setShowControls(true)}><ChevronRightIcon /></div>
+        }
+
         {0 < selectedFeatures.length &&
           <div className="py-1 px-3 m-3 font-normal text-white bg-[#23374be5] rounded-md">
             <p className="float-right text-lg" onClick={ () => setSelectedFeatures([]) }>x</p>
             <p className="text-lg font-bold">Features:</p>
             <ul className="ml-2">
               {selectedFeatures.map((feature, i) =>
-                (<li key={i}>{feature.layer["source-layer"]}: {feature.layer.id}</li>)
+                (<li key={i} onClick={() => console.log(feature)}>{feature.layer["source-layer"]}: {feature.layer.id}</li>)
               )}
             </ul>
           </div>
