@@ -1,11 +1,13 @@
-import React, { useRef, useEffect, useState } from "React";
+import React, { Fragment, useEffect, useRef, useState } from "React";
 import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
 import mapboxConfig from "../config/mapbox";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import Tooltip from "./Tooltip";
-import { ChevronRightIcon } from "@heroicons/react/outline"
+import { ChevronRightIcon } from "@heroicons/react/outline";
+import {  SelectorIcon } from "@heroicons/react/solid";
+import { Listbox, Transition } from "@headlessui/react";
 
 
 mapboxgl.accessToken = mapboxConfig.accessToken;
@@ -41,6 +43,27 @@ export default () => {
     }
   }
 
+  function selectedFeaturesSource() {
+    const source = map.current.getSource("selectedFeatures");
+    if (source) { return source };
+
+    map.current.addSource("selectedFeatures", {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: selectedFeatures
+      }
+    });
+
+    map.current.addLayer({
+      id: "selectedFeatures",
+      type: "line",
+      source: "selectedFeatures"
+    });
+
+    return map.current.getSource("selectedFeatures");
+  }
+
   useEffect(() => {
     if (map.current) return;
     map.current = new mapboxgl.Map({
@@ -51,19 +74,7 @@ export default () => {
     });
 
     map.current.on("load", () => {
-      map.current.addSource("selectedFeatures", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: []
-        }
-      });
-
-      map.current.addLayer({
-        id: "selectedFeatures",
-        type: "line",
-        source: "selectedFeatures"
-      });
+      selectedFeaturesSource();
     });
 
     tooltipContainer.current = document.createElement("div");
@@ -106,7 +117,11 @@ export default () => {
 
   useEffect(() => {
     if (!map.current || !map.current.loaded()) return;
-    const source = map.current.getSource("selectedFeatures");
+    const source = selectedFeaturesSource();
+    if (!source) {
+      console.log("yo");
+      addSelectedFeaturesSource();
+    }
     source.setData({
       type: "FeatureCollection",
       features: selectedFeatures
@@ -119,6 +134,23 @@ export default () => {
     setShowBoundaries(toggle);
   }
 
+  const [style, setStyle] = useState("mapbox://styles/mapbox/streets-v11");
+  const styles = [
+    "mapbox://styles/mapbox/streets-v11",
+    "mapbox://styles/mapbox/outdoors-v11",
+    "mapbox://styles/mapbox/light-v10",
+    "mapbox://styles/mapbox/dark-v10",
+    "mapbox://styles/mapbox/satellite-v9",
+    "mapbox://styles/mapbox/satellite-streets-v11",
+    "mapbox://styles/mapbox/navigation-day-v1",
+    "mapbox://styles/mapbox/navigation-night-v1"
+  ];
+
+  function styleSelected(style) {
+    setStyle(style);
+    map.current.setStyle(style);
+  };
+
   return (
     <div>
       <div className="absolute top-0 left-0 z-10">
@@ -130,6 +162,31 @@ export default () => {
           <div className="py-1 px-3 m-3 font-normal text-white bg-[#23374be5] rounded-md">
             <p className="float-right text-lg" onClick={() => setShowControls()}>x</p>
             <p className="text-lg font-bold">Options:</p>
+
+            <Listbox value={style} onChange={styleSelected}>
+              <Listbox.Button className="relative p-1 pl-3 w-full border-2 rounded-lg text-left">
+                {style}
+                <SelectorIcon className="w-5 h-5 float-right" />
+              </Listbox.Button>
+              <Transition as={Fragment}
+                leave="transition ease-in duration-100"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+              >
+                <Listbox.Options className="absolute w-full mt-1 overflow-auto rounded-md shadow-lg ring-1 ring-white ring-opacity-5 bg-[#23374b]">
+                  {styles.map((style, i) => (
+                    <Listbox.Option
+                      key={i}
+                      value={style}
+                      className="p-1 pl-2"
+                    >
+                      {style}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
+              </Transition>
+            </Listbox>
+
             <ul>
               <li onClick={toggleBoundaries}>{showBoundaries ? "x" : "o"} Show Tile Boundaries</li>
             </ul>
